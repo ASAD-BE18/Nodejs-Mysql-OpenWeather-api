@@ -190,7 +190,7 @@ async function main() {
   }
 }
 
-const job = new CronJob("* 10 * * * *", () => {
+const job = new CronJob("10 * * * * *", () => {
   //let mylist = sendEmails();
   main().catch(console.error);
 });
