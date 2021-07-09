@@ -33,6 +33,33 @@ app.get("/getForecast", function (req, res) {
       }
     })
     .then(([data1, data2]) => {
+      const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "Nocvember",
+        "December",
+      ];
+      const days = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      const currentDate = new Date();
+      const date = `${days[currentDate.getDay()]} ${currentDate.getDate()} ${
+        months[currentDate.getMonth()]
+      }`;
       const sunset = new Date(data1.sys.sunset * 1000)
         .toLocaleTimeString()
         .slice(0, 5);
@@ -159,7 +186,7 @@ async function main() {
   }
 }
 
-const job = new CronJob("30 * * * * *", () => {
+const job = new CronJob("10 * * * * *", () => {
   //let mylist = sendEmails();
   main().catch(console.error);
 });
