@@ -22,7 +22,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.get("/getForecast", function (req, res) {
-  const city = req.query.city;
+  const {city} = req.query;
   const weather = `https://api.openweathermap.org/data/2.5/weather?q=${city}&APPID=${process.env.API_KEY}&units=metric`;
   const forecast = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&APPID=${process.env.API_KEY}&units=metric`;
 
@@ -31,8 +31,10 @@ app.get("/getForecast", function (req, res) {
       if (res1.ok && res2.ok) {
         return Promise.all([res1.json(), res2.json()]);
       }
+      throw Error(res1.statusText, res2.statusText)
     })
     .then(([data1, data2]) => {
+        
       const months = [
         "January",
         "February",
@@ -87,17 +89,18 @@ app.get("/getForecast", function (req, res) {
       res.send(weatherInfo);
     })
     .catch((err) => {
-      throw err;
+      console.log(err);
+      res.send({"msg":"City Not Found"})
     });
 });
 
 app.post("/signup", function (req, res) {
-  console.log(req.body);
+  
   const { firstName, lastName, email, city, state } = req.body;
   con.query(
     `Select * from Users where email='${email}'`,
     function (err, rows, fields) {
-      if (!err) {
+      if (rows.length != 0) {
         res.send("Email already Exist Please Check your Email");
         return;
       } else {
@@ -116,14 +119,15 @@ app.listen(3001, function () {
 });
 
 function getUsers() {
-  const emails = "select email,city from users";
+  const emails = "select email,city,state from users";
   let to_list = [];
   return new Promise((res, rej) => {
     con.query(emails, (err, email, fields) => {
       for (k in email) {
         let email_address = email[k].email;
         let city = email[k].city;
-        to_list.push({ email_address, city });
+        let state = email[k].state
+        to_list.push({ email_address, city,state });
       }
       res(to_list);
     });
@@ -149,7 +153,7 @@ async function main() {
   // send mail with defined transport object
   for (i of list) {
     let fetchedData = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${i.city}&APPID=${process.env.API_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${i.city}&state=${i.state}&APPID=${process.env.API_KEY}&units=metric`
     );
     try{
         fetchedData = await fetchedData.json()
@@ -186,7 +190,7 @@ async function main() {
   }
 }
 
-const job = new CronJob("10 * * * * *", () => {
+const job = new CronJob("* 10 * * * *", () => {
   //let mylist = sendEmails();
   main().catch(console.error);
 });
